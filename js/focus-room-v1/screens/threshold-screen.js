@@ -1,35 +1,21 @@
-function renderStage(scene) {
-    return '' +
-        '<div class="fr1-stage">' +
-            '<video class="fr1-stage__video" autoplay muted loop playsinline preload="metadata">' +
-                '<source src="' + scene.videoSrc + '" type="video/mp4">' +
-            '</video>' +
-            '<div class="fr1-stage__scrim"></div>' +
-            '<div class="fr1-stage__warmth"></div>' +
-            '<div class="fr1-stage__fog"></div>' +
-            '<div class="fr1-stage__glass"></div>' +
-            '<div class="fr1-stage__presence" aria-hidden="true">' +
-                '<span></span><span></span><span></span><span></span><span></span>' +
-            '</div>' +
-        '</div>';
-}
+import { renderStage } from './shared.js';
 
 export function renderThresholdScreen(context) {
     return '' +
         '<section class="fr1-screen fr1-screen--threshold">' +
-            renderStage(context.derived.scene) +
+            renderStage(context.derived.scene, { quiet: true }) +
             '<div class="fr1-screen__content fr1-threshold-layout">' +
                 '<div class="fr1-panel fr1-panel--ghost fr1-threshold-card">' +
                     '<span class="fr1-kicker">Quieta</span>' +
-                    '<h1 class="fr1-title">Enter gently</h1>' +
-                    '<p class="fr1-copy">A calm space to start, return, and continue.</p>' +
+                    '<h1 class="fr1-title">Start gently</h1>' +
+                    '<p class="fr1-copy">Cross the start threshold without asking for momentum. The room only comes in after the first edge is visible.</p>' +
                     '<button class="fr1-hold-button" data-fr1-hold-trigger data-holding="false" type="button" aria-describedby="fr1ThresholdPrompt">' +
-                        '<span class="fr1-hold-label" data-fr1-hold-label>Hold to Enter</span>' +
+                        '<span class="fr1-hold-label" data-fr1-hold-label>Hold to start</span>' +
                     '</button>' +
                     '<div class="fr1-hold-track" aria-hidden="true">' +
                         '<span data-fr1-hold-fill></span>' +
                     '</div>' +
-                    '<p class="fr1-footnote" id="fr1ThresholdPrompt" data-fr1-hold-prompt>Hold for a breath. The next step can stay small.</p>' +
+                    '<p class="fr1-footnote" id="fr1ThresholdPrompt" data-fr1-hold-prompt>Hold for one breath. We only need the smallest visible next move.</p>' +
                 '</div>' +
             '</div>' +
         '</section>';
@@ -57,13 +43,13 @@ export function bindThresholdScreen(root, context, actions) {
         }
 
         if (holdLabel) {
-            holdLabel.textContent = safeProgress >= 0.82 ? 'Almost there' : (isHolding ? 'Keep holding' : 'Hold to Enter');
+            holdLabel.textContent = safeProgress >= 0.82 ? 'Almost open' : (isHolding ? 'Keep holding' : 'Hold to start');
         }
 
         if (holdPrompt) {
             holdPrompt.textContent = isHolding
-                ? (safeProgress >= 0.82 ? 'The room is opening.' : 'Stay steady. Nothing else needs to happen yet.')
-                : 'Hold for a breath. The next step can stay small.';
+                ? (safeProgress >= 0.82 ? 'The start edge is opening.' : 'Stay steady. Nothing else has to happen yet.')
+                : 'Hold for one breath. We only need the smallest visible next move.';
         }
     }
 
