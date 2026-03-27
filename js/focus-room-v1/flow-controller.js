@@ -2,6 +2,7 @@ import { loadStoredFlowState, saveStoredFlowState, clearStoredFlowState } from '
 import {
     DEFAULT_ROOM_MODE_KEY,
     createMicroPrompt,
+    createRescueMicroPrompt,
     getDefaultEmotionalStates,
     getEmotionById,
     getModeByKey,
@@ -16,6 +17,7 @@ import { renderRoomScreen, bindRoomScreen, updateRoomScreen } from './screens/ro
 import { renderResumeScreen, bindResumeScreen } from './screens/resume-screen.js';
 
 var SOFT_START_DURATION_MS = 90 * 1000;
+var VISIBILITY_INTERRUPTION_MS = 45 * 1000;
 
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -35,6 +37,26 @@ function getSelectedEmotion(state) {
     }
 
     return getEmotionById(state.emotionalStates, state.emotionalState);
+}
+
+function getSafePreFlightStep(preFlightStep, emotionalState) {
+    if (preFlightStep === 'micro-prompt' && emotionalState) {
+        return 'micro-prompt';
+    }
+
+    return 'emotion';
+}
+
+function getSafeResumeReason(resumeReason) {
+    if (
+        resumeReason === 'soft-finish' ||
+        resumeReason === 'return-after-interruption' ||
+        resumeReason === 'leave-plan'
+    ) {
+        return resumeReason;
+    }
+
+    return 'leave-plan';
 }
 
 function formatRelativeTime(timestamp) {
@@ -114,6 +136,7 @@ function createStorageSnapshot(state) {
         emotionalState: state.emotionalState,
         microPrompt: state.microPrompt,
         microPromptVariant: state.microPromptVariant,
+        preFlightStep: state.preFlightStep,
         whereIStopped: state.whereIStopped,
         nextVisibleAction: state.nextVisibleAction,
         dontForget: state.dontForget,
@@ -123,6 +146,7 @@ function createStorageSnapshot(state) {
         roomEnteredAt: state.roomEnteredAt,
         softStartStartedAt: state.softStartStartedAt,
         lastRoomEventAt: state.lastRoomEventAt,
+        resumeReason: state.resumeReason,
         resumeSnapshot: state.resumeSnapshot
     };
 }
@@ -135,6 +159,7 @@ function createDefaultState(emotionalStates) {
         emotionalState: '',
         microPrompt: '',
         microPromptVariant: 0,
+        preFlightStep: 'emotion',
         whereIStopped: '',
         nextVisibleAction: '',
         dontForget: '',
@@ -144,6 +169,7 @@ function createDefaultState(emotionalStates) {
         roomEnteredAt: 0,
         softStartStartedAt: 0,
         lastRoomEventAt: 0,
+        resumeReason: 'leave-plan',
         resumeSnapshot: null
     };
 }
@@ -226,15 +252,16 @@ function buildDerivedState(state) {
         selectedEmotion: emotion,
         nextAction: nextAction,
         microPrompt: microPrompt || 'Touch the next visible edge.',
-        supportLine: emotion ? emotion.support : mode.supportLine,
+        supportLine: mode.supportLine,
         anchorLine: state.firstStep || 'Make the first move visible.',
-        audioLabel: mode.audioName + (state.audioEnabled ? ' on' : ' off'),
+        audioLabel: state.audioEnabled ? 'Sound on' : 'Sound off',
+        audioName: mode.audioName,
         presence: {
             enabled: !!state.presenceMode,
-            label: state.presenceMode ? 'Quiet co-presence on' : 'Quiet co-presence off',
+            label: state.presenceMode ? 'On' : 'Off',
             detail: state.presenceMode
                 ? mode.presenceLine
-                : 'Leave co-presence off when you want the room to stay more empty.'
+                : 'Leave it off for a quieter room.'
         },
         softStart: {
             progress: softStartProgress,
@@ -255,8 +282,9 @@ function buildDerivedState(state) {
             nextVisibleAction: resumeSnapshot.nextVisibleAction || resumePlan.nextVisibleAction || nextAction,
             dontForget: resumeSnapshot.dontForget || resumePlan.dontForget || mode.returnLine,
             roomModeLabel: resumeSnapshot.roomModeLabel || mode.label,
-            presenceLabel: resumeSnapshot.presenceMode ? 'Quiet co-presence on' : 'Quiet co-presence off',
+            presenceLabel: resumeSnapshot.presenceMode ? 'Co-presence on' : 'Co-presence off',
             updatedText: resumeSnapshot.updatedAt ? formatRelativeTime(resumeSnapshot.updatedAt) : 'Ready to return',
+            reason: getSafeResumeReason(state.resumeReason),
             needsCapture: !(
                 (state.whereIStopped || resumeSnapshot.whereIStopped) &&
                 (state.nextVisibleAction || resumeSnapshot.nextVisibleAction) &&
@@ -279,6 +307,7 @@ function mergeStoredState(emotionalStates, storedState) {
     base.emotionalState = storedState.emotionalState || base.emotionalState;
     base.microPromptVariant = storedState.microPromptVariant || 0;
     base.microPrompt = storedState.microPrompt || base.microPrompt;
+    base.preFlightStep = getSafePreFlightStep(storedState.preFlightStep, storedState.emotionalState);
     base.whereIStopped = storedState.whereIStopped || base.whereIStopped;
     base.nextVisibleAction = storedState.nextVisibleAction || base.nextVisibleAction;
     base.dontForget = storedState.dontForget || base.dontForget;
@@ -288,6 +317,7 @@ function mergeStoredState(emotionalStates, storedState) {
     base.roomEnteredAt = storedState.roomEnteredAt || 0;
     base.softStartStartedAt = storedState.softStartStartedAt || 0;
     base.lastRoomEventAt = storedState.lastRoomEventAt || 0;
+    base.resumeReason = getSafeResumeReason(storedState.resumeReason);
     base.resumeSnapshot = storedState.resumeSnapshot || null;
 
     if (base.emotionalState && !base.microPrompt) {
@@ -303,8 +333,13 @@ function mergeStoredState(emotionalStates, storedState) {
         base.dontForget = emotion ? emotion.returnNote : base.dontForget;
     }
 
-    if ((base.screen === 'room' || base.screen === 'resume') && base.resumeSnapshot) {
+    if (base.screen === 'room' && base.resumeSnapshot) {
         base.screen = 'resume';
+        base.resumeReason = 'return-after-interruption';
+    }
+
+    if (base.screen === 'resume') {
+        base.resumeReason = getSafeResumeReason(storedState.resumeReason || base.resumeReason);
     }
 
     return base;
@@ -318,11 +353,17 @@ function FocusRoomV1Controller(config) {
     this.roomTicker = 0;
     this.ambientAudio = typeof window.Audio === 'function' ? new window.Audio() : null;
     this.currentAudioSrc = '';
+    this.hiddenAt = 0;
+    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
 
     if (this.ambientAudio) {
         this.ambientAudio.loop = true;
         this.ambientAudio.preload = 'auto';
         this.ambientAudio.volume = 0.12;
+    }
+
+    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
     }
 }
 
@@ -360,6 +401,7 @@ FocusRoomV1Controller.prototype.updateState = function (patch, options) {
 FocusRoomV1Controller.prototype.resetFlow = function () {
     this.stopRoomTicker();
     this.pauseAmbientAudio();
+    this.hiddenAt = 0;
     clearStoredFlowState();
     this.state = createDefaultState(this.emotionalStates);
     this.render();
@@ -433,6 +475,61 @@ FocusRoomV1Controller.prototype.updateRoomLiveState = function () {
     updateRoomScreen(this.root, this.getContext());
 };
 
+FocusRoomV1Controller.prototype.openResumeScreen = function (reason, options) {
+    var config = options || {};
+    var resumePlan = buildDefaultResumePlan(this.state);
+    var nextState = {
+        screen: 'resume',
+        resumeReason: getSafeResumeReason(reason),
+        lastRoomEventAt: Date.now(),
+        roomMode: config.roomMode || this.state.roomMode,
+        whereIStopped: resumePlan.whereIStopped,
+        nextVisibleAction: resumePlan.nextVisibleAction,
+        dontForget: resumePlan.dontForget
+    };
+
+    nextState.resumeSnapshot = createResumeSnapshot(Object.assign({}, this.state, nextState));
+    this.updateState(nextState, config.updateOptions);
+};
+
+FocusRoomV1Controller.prototype.handleVisibilityChange = function () {
+    var hiddenFor = 0;
+
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    if (document.hidden) {
+        if (this.state.screen !== 'room') {
+            return;
+        }
+
+        this.hiddenAt = Date.now();
+        this.updateState({
+            lastRoomEventAt: this.hiddenAt,
+            resumeSnapshot: createResumeSnapshot(this.state)
+        }, {
+            render: false
+        });
+        return;
+    }
+
+    if (!this.hiddenAt) {
+        return;
+    }
+
+    hiddenFor = Date.now() - this.hiddenAt;
+    this.hiddenAt = 0;
+
+    if (this.state.screen !== 'room' || hiddenFor < VISIBILITY_INTERRUPTION_MS) {
+        return;
+    }
+
+    this.openResumeScreen('return-after-interruption', {
+        roomMode: 'after-interruption'
+    });
+};
+
 FocusRoomV1Controller.prototype.createActions = function () {
     var controller = this;
 
@@ -451,7 +548,8 @@ FocusRoomV1Controller.prototype.createActions = function () {
             var nextValue = clampText(value, 220);
             var nextState = {
                 screen: 'pre-flight',
-                firstStep: nextValue
+                firstStep: nextValue,
+                preFlightStep: 'emotion'
             };
 
             if (!nextValue) {
@@ -476,7 +574,8 @@ FocusRoomV1Controller.prototype.createActions = function () {
         },
         backToFirstStep: function () {
             controller.updateState({
-                screen: 'first-step'
+                screen: 'first-step',
+                preFlightStep: 'emotion'
             });
         },
         selectEmotionalState: function (emotionalStateId) {
@@ -513,7 +612,8 @@ FocusRoomV1Controller.prototype.createActions = function () {
                 microPrompt: microPrompt,
                 nextVisibleAction: nextVisibleAction,
                 dontForget: nextDontForget,
-                roomMode: getSuggestedRoomMode(controller.state.emotionalStates, emotionalStateId)
+                roomMode: getSuggestedRoomMode(controller.state.emotionalStates, emotionalStateId),
+                preFlightStep: 'micro-prompt'
             });
         },
         updateMicroPrompt: function (value) {
@@ -572,7 +672,8 @@ FocusRoomV1Controller.prototype.createActions = function () {
                 lastRoomEventAt: Date.now(),
                 microPrompt: getEffectiveMicroPrompt(controller.state),
                 nextVisibleAction: controller.state.nextVisibleAction || getEffectiveMicroPrompt(controller.state) || controller.state.firstStep,
-                dontForget: controller.state.dontForget || (emotion ? emotion.returnNote : getModeByKey(controller.state.roomMode).returnLine)
+                dontForget: controller.state.dontForget || (emotion ? emotion.returnNote : getModeByKey(controller.state.roomMode).returnLine),
+                resumeReason: 'leave-plan'
             };
 
             nextState.resumeSnapshot = createResumeSnapshot(Object.assign({}, controller.state, nextState));
@@ -584,7 +685,9 @@ FocusRoomV1Controller.prototype.createActions = function () {
             };
 
             nextState.resumeSnapshot = createResumeSnapshot(Object.assign({}, controller.state, nextState));
-            controller.updateState(nextState);
+            controller.updateState(nextState, {
+                render: false
+            });
         },
         togglePresenceMode: function () {
             var nextState = {
@@ -592,26 +695,44 @@ FocusRoomV1Controller.prototype.createActions = function () {
             };
 
             nextState.resumeSnapshot = createResumeSnapshot(Object.assign({}, controller.state, nextState));
-            controller.updateState(nextState);
+            controller.updateState(nextState, {
+                render: false
+            });
         },
         toggleAudio: function () {
             controller.updateState({
                 audioEnabled: !controller.state.audioEnabled
+            }, {
+                render: false
             });
         },
-        markInterrupted: function () {
-            var resumePlan = buildDefaultResumePlan(controller.state);
-            var nextState = {
-                screen: 'resume',
-                lastRoomEventAt: Date.now(),
-                roomMode: 'after-interruption',
-                whereIStopped: resumePlan.whereIStopped,
-                nextVisibleAction: resumePlan.nextVisibleAction,
-                dontForget: resumePlan.dontForget
-            };
+        rewriteMicroPrompt: function (rescueType) {
+            var nextVariant = controller.state.microPromptVariant + 1;
+            var nextMicroPrompt = createRescueMicroPrompt(
+                controller.state.firstStep,
+                rescueType,
+                nextVariant
+            );
 
-            nextState.resumeSnapshot = createResumeSnapshot(Object.assign({}, controller.state, nextState));
-            controller.updateState(nextState);
+            controller.updateState({
+                microPrompt: nextMicroPrompt,
+                microPromptVariant: nextVariant,
+                nextVisibleAction: nextMicroPrompt,
+                lastRoomEventAt: Date.now(),
+                resumeSnapshot: createResumeSnapshot(Object.assign({}, controller.state, {
+                    microPrompt: nextMicroPrompt,
+                    microPromptVariant: nextVariant,
+                    nextVisibleAction: nextMicroPrompt
+                }))
+            }, {
+                render: false
+            });
+        },
+        leaveReturnPlan: function () {
+            controller.openResumeScreen('leave-plan');
+        },
+        openSoftFinish: function () {
+            controller.openResumeScreen('soft-finish');
         },
         updateResumeField: function (field, value) {
             var nextState = {};
@@ -629,13 +750,14 @@ FocusRoomV1Controller.prototype.createActions = function () {
         returnToRoom: function () {
             var nextState = {
                 screen: 'room',
-                lastRoomEventAt: Date.now()
+                lastRoomEventAt: Date.now(),
+                resumeReason: 'leave-plan'
             };
 
             nextState.resumeSnapshot = createResumeSnapshot(Object.assign({}, controller.state, nextState));
             controller.updateState(nextState);
         },
-        finishSoftly: function () {
+        completeSoftFinish: function () {
             controller.resetFlow();
         },
         startOver: function () {
@@ -685,7 +807,6 @@ FocusRoomV1Controller.prototype.render = function () {
         this.root.innerHTML = markup;
         this.cleanupScreen = bindRoomScreen(this.root, context, actions);
         this.syncAmbientAudio();
-        this.startRoomTicker();
         return;
     }
 

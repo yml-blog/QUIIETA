@@ -471,17 +471,13 @@ button {
 }
 
 .fr1-flow-card {
-    width: min(760px, 100%);
+    width: min(700px, 100%);
     padding: 32px;
     margin: 0 auto;
 }
 
-.fr1-preflight-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-    width: 100%;
-    align-self: center;
+.fr1-flow-card--compact {
+    gap: 16px;
 }
 
 .fr1-preflight-panel {
@@ -595,101 +591,148 @@ button {
 
 .fr1-room-shell {
     display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: 18px;
+    grid-template-rows: auto 1fr;
+    gap: 28px;
+    width: min(760px, 100%);
+    margin: 0 auto;
+    min-height: 100vh;
 }
 
-.fr1-room-ambient {
-    transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
-}
-
-.fr1-room-shell[data-fr1-room-ui="quiet"] .fr1-room-ambient {
-    opacity: 0.12;
-    transform: translateY(10px);
-    filter: blur(5px);
-}
-
-.fr1-room-topbar,
-.fr1-room-actions {
+.fr1-room-topbar {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 16px;
     flex-wrap: wrap;
 }
 
-.fr1-room-brand {
-    display: grid;
-    gap: 6px;
+.fr1-room-mode-label {
+    color: var(--fr1-text-faint);
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
-.fr1-room-toggle-row {
+.fr1-room-step {
+    font-size: clamp(2.4rem, 2rem + 1.7vw, 3.8rem);
+    line-height: 1.06;
+    max-width: 12ch;
+}
+
+.fr1-room-focus-card {
+    align-self: center;
+    padding: 40px 36px;
+    display: grid;
+    gap: 18px;
+    background:
+        linear-gradient(180deg, rgba(13, 19, 29, 0.58), rgba(10, 14, 22, 0.88));
+}
+
+.fr1-room-support {
+    max-width: 34ch;
+    color: var(--fr1-text-soft);
+    line-height: 1.65;
+}
+
+.fr1-room-primary {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.fr1-room-inline-action {
+    justify-self: flex-start;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--fr1-text-faint);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.18);
+    text-underline-offset: 0.22em;
+}
+
+.fr1-room-inline-action:hover,
+.fr1-room-inline-action:focus-visible {
+    color: var(--fr1-text-soft);
+}
+
+.fr1-room-rescue {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-.fr1-room-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.16fr) minmax(320px, 0.84fr);
-    gap: 20px;
-    align-items: end;
-    min-height: calc(100vh - 210px);
+.fr1-room-sheet-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
 }
 
-.fr1-room-intent {
-    min-height: 520px;
-    padding: 30px 30px 32px;
+.fr1-room-sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    border: none;
+    background: rgba(4, 7, 12, 0.48);
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 220ms ease;
+}
+
+.fr1-room-sheet {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: min(420px, calc(100vw - 24px));
+    padding: 24px;
+    display: grid;
+    align-content: start;
+    gap: 18px;
+    transform: translateX(calc(100% + 24px));
+    opacity: 0;
+    transition: transform 240ms ease, opacity 240ms ease;
+}
+
+.fr1-room-shell[data-fr1-room-sheet="open"] .fr1-room-sheet-layer {
+    pointer-events: auto;
+}
+
+.fr1-room-shell[data-fr1-room-sheet="open"] .fr1-room-sheet-backdrop {
+    opacity: 1;
+}
+
+.fr1-room-shell[data-fr1-room-sheet="open"] .fr1-room-sheet {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.fr1-room-sheet-head,
+.fr1-room-setting {
     display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 16px;
-    background:
-        linear-gradient(180deg, rgba(12, 18, 28, 0.48), rgba(10, 14, 22, 0.84));
-}
-
-.fr1-room-step {
-    font-size: clamp(2.2rem, 1.82rem + 1.9vw, 3.6rem);
-    line-height: 1.06;
-    max-width: 11ch;
-}
-
-.fr1-room-support {
-    max-width: 42ch;
-    color: var(--fr1-text-soft);
-    line-height: 1.8;
-}
-
-.fr1-room-anchor,
-.fr1-room-plan {
-    display: grid;
-    gap: 12px;
-    padding: 18px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.fr1-room-anchor-row,
-.fr1-room-plan-row {
-    display: grid;
-    gap: 4px;
-}
-
-.fr1-room-sidebar {
-    display: grid;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 16px;
 }
 
-.fr1-room-card {
-    padding: 22px 22px 24px;
-    display: grid;
-    gap: 14px;
+.fr1-room-setting {
+    padding: 18px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.fr1-room-card h2 {
-    margin: 0;
-    font-size: 1.14rem;
+.fr1-room-setting--stacked {
+    display: grid;
+}
+
+.fr1-room-setting-copy {
+    display: grid;
+    gap: 6px;
+    max-width: 24ch;
+}
+
+.fr1-room-setting-label {
+    color: var(--fr1-text);
+    font-size: 1rem;
     font-weight: 600;
 }
 
@@ -726,39 +769,20 @@ button {
     background: rgba(234, 197, 145, 0.1);
 }
 
-.fr1-room-meta {
+.fr1-room-sheet-actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    color: var(--fr1-text-faint);
-    font-size: 0.9rem;
-}
-
-.fr1-room-fade-note {
-    max-width: 40ch;
+    padding-top: 6px;
 }
 
 .fr1-resume-card {
-    width: min(900px, 100%);
+    width: min(700px, 100%);
     padding: 32px;
     margin: 0 auto;
 }
 
-.fr1-resume-grid,
 .fr1-resume-form {
     display: grid;
     gap: 14px;
-}
-
-.fr1-resume-grid--summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.fr1-resume-block {
-    padding: 18px;
-    border-radius: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(255, 255, 255, 0.02);
 }
 
 .fr1-noscript {
@@ -800,18 +824,12 @@ button {
         padding-bottom: 24px;
     }
 
-    .fr1-preflight-grid,
-    .fr1-resume-grid--summary,
-    .fr1-room-grid {
-        grid-template-columns: 1fr;
+    .fr1-room-shell {
+        gap: 22px;
     }
 
-    .fr1-room-grid {
-        min-height: auto;
-    }
-
-    .fr1-room-intent {
-        min-height: 400px;
+    .fr1-room-focus-card {
+        padding: 32px 28px;
     }
 }
 
@@ -823,8 +841,8 @@ button {
         padding: 24px 20px 24px;
     }
 
-    .fr1-room-card,
-    .fr1-room-intent {
+    .fr1-room-focus-card,
+    .fr1-room-sheet {
         padding: 22px 20px;
     }
 
@@ -833,11 +851,23 @@ button {
     }
 
     .fr1-room-topbar,
-    .fr1-room-actions,
     .fr1-actions,
-    .fr1-room-toggle-row {
+    .fr1-room-setting,
+    .fr1-room-sheet-head {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .fr1-room-setting-copy {
+        max-width: none;
+    }
+
+    .fr1-room-sheet {
+        top: auto;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        width: auto;
     }
 
     .fr1-button {
@@ -853,7 +883,9 @@ button {
     .fr1-choice,
     .fr1-scene-chip,
     .fr1-hold-button,
-    .fr1-room-ambient {
+    .fr1-room-sheet,
+    .fr1-room-sheet-backdrop,
+    .fr1-room-inline-action {
         animation: none !important;
         transition: none !important;
     }

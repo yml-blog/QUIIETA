@@ -11,6 +11,17 @@ var KNOWN_SCREENS = {
     resume: true
 };
 
+var KNOWN_PRE_FLIGHT_STEPS = {
+    emotion: true,
+    'micro-prompt': true
+};
+
+var KNOWN_RESUME_REASONS = {
+    'leave-plan': true,
+    'soft-finish': true,
+    'return-after-interruption': true
+};
+
 function clampString(value, maxLength) {
     if (typeof value !== 'string') {
         return '';
@@ -51,6 +62,18 @@ function normalizeRoomMode(value, legacySceneKey) {
     }
 
     return DEFAULT_ROOM_MODE_KEY;
+}
+
+function normalizePreFlightStep(value) {
+    var normalized = clampString(value, 40);
+
+    return KNOWN_PRE_FLIGHT_STEPS[normalized] ? normalized : 'emotion';
+}
+
+function normalizeResumeReason(value) {
+    var normalized = clampString(value, 80);
+
+    return KNOWN_RESUME_REASONS[normalized] ? normalized : 'leave-plan';
 }
 
 function sanitizeResumeSnapshot(snapshot) {
@@ -109,6 +132,7 @@ export function loadStoredFlowState() {
         emotionalState: clampString(parsed.emotionalState || parsed.selectedFrictionId, 80),
         microPrompt: clampString(parsed.microPrompt, 260),
         microPromptVariant: normalizeVariant(parsed.microPromptVariant),
+        preFlightStep: normalizePreFlightStep(parsed.preFlightStep),
         whereIStopped: clampString(parsed.whereIStopped, 220),
         nextVisibleAction: clampString(parsed.nextVisibleAction, 220),
         dontForget: clampString(parsed.dontForget, 220),
@@ -118,6 +142,7 @@ export function loadStoredFlowState() {
         roomEnteredAt: normalizeTimestamp(parsed.roomEnteredAt),
         softStartStartedAt: normalizeTimestamp(parsed.softStartStartedAt),
         lastRoomEventAt: normalizeTimestamp(parsed.lastRoomEventAt),
+        resumeReason: normalizeResumeReason(parsed.resumeReason),
         resumeSnapshot: sanitizeResumeSnapshot(parsed.resumeSnapshot)
     };
 }

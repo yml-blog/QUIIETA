@@ -5,13 +5,13 @@ var ROOM_MODE_LIBRARY = [
         sub: 'unclear edge / low pressure',
         videoSrc: './assets/video/windowlight-at-midnight.mp4',
         audioSrc: './assets/audio/light-rain.mp3',
-        audioName: 'Mist-soft audio',
+        audioName: 'Mist-soft rain',
         audioVolume: 0.1,
         stageClass: 'fr1-stage--mode-foggy',
-        supportLine: 'Let the edge appear before asking for momentum.',
-        roomLine: 'We are only making the task touchable, not complete.',
-        presenceLine: 'A quiet distant presence can help the room feel held.',
-        returnLine: 'Resume the first live edge. Leave the rest asleep.'
+        supportLine: 'Let the next edge appear.',
+        roomLine: 'Make it touchable, not complete.',
+        presenceLine: 'A quiet room signal can help.',
+        returnLine: 'Leave one visible edge for later.'
     },
     {
         key: 'low-energy',
@@ -19,13 +19,13 @@ var ROOM_MODE_LIBRARY = [
         sub: 'low lift / warm support',
         videoSrc: './assets/video/the-focus-sanctuary.mp4',
         audioSrc: './assets/audio/rainfall-soft.mp3',
-        audioName: 'Warm rain audio',
+        audioName: 'Warm rain',
         audioVolume: 0.11,
         stageClass: 'fr1-stage--mode-low-energy',
-        supportLine: 'Trade intensity for contact. Gentle still counts.',
-        roomLine: 'Choose the move that asks the least from your body.',
-        presenceLine: 'A soft companion cue can lower the effort of returning.',
-        returnLine: 'Protect energy by making the re-entry tiny and visible.'
+        supportLine: 'Choose the lowest-lift move.',
+        roomLine: 'Pick the move that asks least.',
+        presenceLine: 'A soft companion cue can help.',
+        returnLine: 'Leave a tiny doorway for later.'
     },
     {
         key: 'steady-work',
@@ -33,13 +33,13 @@ var ROOM_MODE_LIBRARY = [
         sub: 'clear rhythm / settled attention',
         videoSrc: './assets/video/the-library-of-night.mp4',
         audioSrc: './assets/audio/steady-rain.mp3',
-        audioName: 'Steady rain audio',
+        audioName: 'Steady rain',
         audioVolume: 0.14,
         stageClass: 'fr1-stage--mode-steady',
-        supportLine: 'Stay with one visible action until it loosens.',
-        roomLine: 'Less steering. More staying with what is already open.',
-        presenceLine: 'A low, lived-in room signal can keep the thread company.',
-        returnLine: 'Return to the motion already underway, not the whole plan.'
+        supportLine: 'Stay with one visible move.',
+        roomLine: 'Less steering. More staying.',
+        presenceLine: 'A lived-in room signal can keep the thread company.',
+        returnLine: 'Return to the motion already underway.'
     },
     {
         key: 'quiet-return',
@@ -47,13 +47,13 @@ var ROOM_MODE_LIBRARY = [
         sub: 'soft re-entry / no restart drama',
         videoSrc: './assets/video/the-focus-sanctuary.mp4',
         audioSrc: './assets/audio/light-rain.mp3',
-        audioName: 'Quiet wash audio',
+        audioName: 'Quiet wash',
         audioVolume: 0.09,
         stageClass: 'fr1-stage--mode-quiet-return',
-        supportLine: 'You are returning to a thread, not starting from zero.',
-        roomLine: 'Lower the pressure and let the room hand the thread back.',
-        presenceLine: 'Co-presence works best here as a soft reminder, not a demand.',
-        returnLine: 'Leave yourself a visible handhold for later.'
+        supportLine: 'You are rejoining a thread.',
+        roomLine: 'Let the room hand the thread back.',
+        presenceLine: 'Co-presence works best as a soft reminder.',
+        returnLine: 'Leave yourself one clear handhold.'
     },
     {
         key: 'after-interruption',
@@ -61,13 +61,13 @@ var ROOM_MODE_LIBRARY = [
         sub: 'regathering / low-pressure reset',
         videoSrc: './assets/video/windowlight-at-midnight.mp4',
         audioSrc: './assets/audio/rainfall-soft.mp3',
-        audioName: 'Reset rain audio',
+        audioName: 'Reset rain',
         audioVolume: 0.1,
         stageClass: 'fr1-stage--mode-after-interruption',
-        supportLine: 'Rejoin the smallest live edge and let the rest stay quiet.',
-        roomLine: 'The task does not need a dramatic restart. It needs a handhold.',
-        presenceLine: 'A distant room signal can help future-you feel less alone.',
-        returnLine: 'Mark where you stopped so re-entry does not start from confusion.'
+        supportLine: 'Rejoin the smallest live edge.',
+        roomLine: 'No dramatic restart needed.',
+        presenceLine: 'A distant room signal can help.',
+        returnLine: 'Mark where you stopped for later.'
     }
 ];
 
@@ -75,64 +75,77 @@ var EMOTIONAL_STATE_LIBRARY = [
     {
         id: 'no-start',
         label: 'I do not know where to start',
-        support: 'We only need the first edge to become visible.',
-        returnNote: 'Come back to the first edge, not the whole task.',
+        support: 'We only need the first edge.',
+        returnNote: 'Come back to the first edge.',
         defaultMode: 'foggy-start',
         microPrompts: [
-            'Put {quotedStep} in front of you and only identify the first part your hands can touch.',
-            'Do not solve {quotedStep}. Just expose the next edge in one sentence.',
-            'Open the working surface for {quotedStep} and mark the first place that asks for motion.'
+            'Put {quotedStep} in view and mark the first part to touch.',
+            'Do not solve {quotedStep}. Name the next edge.',
+            'Open {quotedStep} and choose the first live piece.'
         ]
     },
     {
         id: 'afraid-badly',
         label: 'I am afraid of doing it badly',
-        support: 'Make the next move reversible and rough on purpose.',
-        returnNote: 'The return does not need to be elegant to count.',
+        support: 'Make the next move rough on purpose.',
+        returnNote: 'It does not need to be elegant.',
         defaultMode: 'steady-work',
         microPrompts: [
-            'Make {quotedStep} smaller: create the roughest version you can revise later.',
-            'Touch {quotedStep} without finishing it. Leave one honest imperfect mark.',
-            'Start with the least final part of {quotedStep} so quality does not get the first turn.'
+            'Make {quotedStep} rough on purpose.',
+            'Leave one imperfect mark in {quotedStep}.',
+            'Start with the least final part of {quotedStep}.'
         ]
     },
     {
         id: 'mind-noisy',
         label: 'My mind feels noisy',
-        support: 'Lower the number of decisions. One move is enough.',
-        returnNote: 'Ignore the pile. Resume the one visible edge.',
+        support: 'Lower the decisions. One move is enough.',
+        returnNote: 'Ignore the pile. Resume one edge.',
         defaultMode: 'quiet-return',
         microPrompts: [
-            'For {quotedStep}, remove choices: do the most obvious physical action first.',
-            'Close the loop around {quotedStep} to one move only. Name it, then do just that.',
-            'Touch {quotedStep} in silence for one minute before making any bigger plan.'
+            'For {quotedStep}, do the most obvious physical move first.',
+            'Cut {quotedStep} down to one move.',
+            'Stay with {quotedStep} for one quiet minute.'
         ]
     },
     {
         id: 'low-energy',
         label: 'My energy is low',
-        support: 'Use a low-lift move that creates contact before effort.',
-        returnNote: 'Future-you needs a tiny doorway, not a push.',
+        support: 'Use the easiest move that creates contact.',
+        returnNote: 'Future-you needs a tiny doorway.',
         defaultMode: 'low-energy',
         microPrompts: [
-            'Make contact with {quotedStep} in the smallest low-energy way you can.',
-            'Open {quotedStep} and do only the easiest visible motion inside it.',
-            'Spend ninety seconds on {quotedStep} without asking for pace or quality.'
+            'Touch {quotedStep} in the easiest way you can.',
+            'Open {quotedStep} and do the lightest visible move.',
+            'Give {quotedStep} ninety gentle seconds.'
         ]
     },
     {
         id: 'pulled-away',
         label: 'I got pulled in too many directions',
-        support: 'Pick the thread that reduces drag when touched.',
-        returnNote: 'Do not reopen every loop. Rejoin one thread.',
+        support: 'Pick the thread that reduces drag.',
+        returnNote: 'Do not reopen every loop.',
         defaultMode: 'after-interruption',
         microPrompts: [
-            'Let {quotedStep} win for one minute. Everything else can stay unresolved.',
-            'Write down the other loops, then return to the next visible action inside {quotedStep}.',
-            'Touch only the part of {quotedStep} that will make the rest feel less scattered.'
+            'Let {quotedStep} be the only thread for one minute.',
+            'Write down the other loops, then return to {quotedStep}.',
+            'Touch the part of {quotedStep} that reduces drag.'
         ]
     }
 ];
+
+var RESCUE_PROMPT_LIBRARY = {
+    smaller: [
+        'Make {quotedStep} smaller. Just set it up.',
+        'Touch only the first tiny part of {quotedStep}.',
+        'Open {quotedStep} and do the easiest visible motion.'
+    ],
+    'less-final': [
+        'Make {quotedStep} less final. Leave a rough pass.',
+        'Touch {quotedStep} in a reversible way.',
+        'Start {quotedStep} with a note, not a decision.'
+    ]
+};
 
 var LEGACY_SCENE_TO_MODE = {
     midnight: 'foggy-start',
@@ -246,4 +259,11 @@ export function getNextMicroPromptVariant(emotionalStates, emotionalStateId, var
     var current = Math.abs(Number(variant || 0)) % promptCount;
 
     return (current + 1) % promptCount;
+}
+
+export function createRescueMicroPrompt(firstStep, rescueType, variant) {
+    var prompts = RESCUE_PROMPT_LIBRARY[rescueType] || RESCUE_PROMPT_LIBRARY.smaller;
+    var safeVariant = Math.abs(Number(variant || 0)) % prompts.length;
+
+    return injectStep(prompts[safeVariant], firstStep);
 }

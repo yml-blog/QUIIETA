@@ -8,14 +8,14 @@ export function renderThresholdScreen(context) {
                 '<div class="fr1-panel fr1-panel--ghost fr1-threshold-card">' +
                     '<span class="fr1-kicker">Quieta</span>' +
                     '<h1 class="fr1-title">Start gently</h1>' +
-                    '<p class="fr1-copy">Cross the start threshold without asking for momentum. The room only comes in after the first edge is visible.</p>' +
+                    '<p class="fr1-copy">Cross the threshold without forcing momentum.</p>' +
                     '<button class="fr1-hold-button" data-fr1-hold-trigger data-holding="false" type="button" aria-describedby="fr1ThresholdPrompt">' +
                         '<span class="fr1-hold-label" data-fr1-hold-label>Hold to start</span>' +
                     '</button>' +
                     '<div class="fr1-hold-track" aria-hidden="true">' +
                         '<span data-fr1-hold-fill></span>' +
                     '</div>' +
-                    '<p class="fr1-footnote" id="fr1ThresholdPrompt" data-fr1-hold-prompt>Hold for one breath. We only need the smallest visible next move.</p>' +
+                    '<p class="fr1-footnote" id="fr1ThresholdPrompt" data-fr1-hold-prompt>Hold for one breath. We only need the next small move.</p>' +
                 '</div>' +
             '</div>' +
         '</section>';
@@ -48,8 +48,8 @@ export function bindThresholdScreen(root, context, actions) {
 
         if (holdPrompt) {
             holdPrompt.textContent = isHolding
-                ? (safeProgress >= 0.82 ? 'The start edge is opening.' : 'Stay steady. Nothing else has to happen yet.')
-                : 'Hold for one breath. We only need the smallest visible next move.';
+                ? (safeProgress >= 0.82 ? 'The first edge is opening.' : 'Stay steady. Nothing else has to happen yet.')
+                : 'Hold for one breath. We only need the next small move.';
         }
     }
 

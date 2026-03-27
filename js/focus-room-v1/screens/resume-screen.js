@@ -1,57 +1,55 @@
 import { escapeHtml, renderStage } from './shared.js';
 
+function getResumeCopy(reason) {
+    if (reason === 'soft-finish') {
+        return {
+            title: 'Leave one clear edge before you close',
+            body: 'One short line in each field is enough.'
+        };
+    }
+
+    if (reason === 'return-after-interruption') {
+        return {
+            title: 'Welcome back',
+            body: 'Pick up one visible thread.'
+        };
+    }
+
+    return {
+        title: 'Leave a return plan',
+        body: 'Just enough to make re-entry easy.'
+    };
+}
+
 export function renderResumeScreen(context) {
-    var title = context.derived.resume.needsCapture
-        ? 'Leave a soft edge to return to'
-        : 'Your return path is already waiting';
-    var body = context.derived.resume.needsCapture
-        ? 'Write just enough that future-you can re-enter without rebuilding the whole context.'
-        : 'Everything here is saved locally. Future-you should only need to pick up one visible thread.';
+    var copy = getResumeCopy(context.derived.resume.reason);
 
     return '' +
         '<section class="fr1-screen fr1-screen--resume">' +
             renderStage(context.derived.scene, { presenceMode: context.state.presenceMode, quiet: true }) +
             '<div class="fr1-screen__content fr1-resume-layout">' +
                 '<div class="fr1-panel fr1-panel--ghost fr1-resume-card">' +
-                    '<span class="fr1-kicker">Ready To Resume</span>' +
-                    '<h1 class="fr1-title-lg">' + escapeHtml(title) + '</h1>' +
-                    '<p class="fr1-copy">' + escapeHtml(body) + '</p>' +
-                    '<div class="fr1-resume-grid fr1-resume-grid--summary">' +
-                        '<div class="fr1-resume-block">' +
-                            '<strong>Emotional state</strong>' +
-                            '<span>' + escapeHtml(context.derived.resume.emotionalLabel) + '</span>' +
-                        '</div>' +
-                        '<div class="fr1-resume-block">' +
-                            '<strong>Regulation mode</strong>' +
-                            '<span>' + escapeHtml(context.derived.resume.roomModeLabel) + '</span>' +
-                        '</div>' +
-                        '<div class="fr1-resume-block">' +
-                            '<strong>Micro-prompt</strong>' +
-                            '<span>' + escapeHtml(context.derived.resume.microPrompt) + '</span>' +
-                        '</div>' +
-                        '<div class="fr1-resume-block">' +
-                            '<strong>Last active</strong>' +
-                            '<span>' + escapeHtml(context.derived.resume.updatedText) + '</span>' +
-                        '</div>' +
-                    '</div>' +
+                    '<span class="fr1-kicker">Return Plan</span>' +
+                    '<h1 class="fr1-title-lg">' + escapeHtml(copy.title) + '</h1>' +
+                    '<p class="fr1-copy">' + escapeHtml(copy.body) + '</p>' +
                     '<div class="fr1-resume-form">' +
                         '<label class="fr1-input-label" for="fr1ResumeWhere">' +
-                            '<span>Where I stopped</span>' +
-                            '<textarea class="fr1-textarea fr1-textarea--compact" id="fr1ResumeWhere" data-fr1-resume-field="whereIStopped" maxlength="220" placeholder="I had the draft open and had just outlined the middle section.">' + escapeHtml(context.derived.resume.whereIStopped) + '</textarea>' +
+                            '<span>Where</span>' +
+                            '<textarea class="fr1-textarea fr1-textarea--compact" id="fr1ResumeWhere" data-fr1-resume-field="whereIStopped" maxlength="220" placeholder="Draft open. Mid-paragraph.">' + escapeHtml(context.derived.resume.whereIStopped) + '</textarea>' +
                         '</label>' +
                         '<label class="fr1-input-label" for="fr1ResumeNext">' +
-                            '<span>Next visible action</span>' +
-                            '<textarea class="fr1-textarea fr1-textarea--compact" id="fr1ResumeNext" data-fr1-resume-field="nextVisibleAction" maxlength="220" placeholder="Read the last paragraph and only rewrite the opening sentence.">' + escapeHtml(context.derived.resume.nextVisibleAction) + '</textarea>' +
+                            '<span>Next</span>' +
+                            '<textarea class="fr1-textarea fr1-textarea--compact" id="fr1ResumeNext" data-fr1-resume-field="nextVisibleAction" maxlength="220" placeholder="Rewrite the first sentence only.">' + escapeHtml(context.derived.resume.nextVisibleAction) + '</textarea>' +
                         '</label>' +
                         '<label class="fr1-input-label" for="fr1ResumeRemember">' +
-                            '<span>Do not forget</span>' +
-                            '<textarea class="fr1-textarea fr1-textarea--compact" id="fr1ResumeRemember" data-fr1-resume-field="dontForget" maxlength="220" placeholder="The structure is already good enough. I only need to reduce friction when I return.">' + escapeHtml(context.derived.resume.dontForget) + '</textarea>' +
+                            '<span>Remember</span>' +
+                            '<textarea class="fr1-textarea fr1-textarea--compact" id="fr1ResumeRemember" data-fr1-resume-field="dontForget" maxlength="220" placeholder="Rough is enough when I return.">' + escapeHtml(context.derived.resume.dontForget) + '</textarea>' +
                         '</label>' +
                     '</div>' +
                     '<div class="fr1-inline-note">' +
-                        '<span>Saved locally as you type.</span>' +
-                        '<span>' + escapeHtml(context.derived.resume.presenceLabel) + '</span>' +
-                        '<span>' + escapeHtml(context.derived.scene.returnLine) + '</span>' +
+                        '<span>Mode: ' + escapeHtml(context.derived.resume.roomModeLabel) + '</span>' +
+                        '<span>' + escapeHtml(context.derived.resume.emotionalLabel) + '</span>' +
+                        '<span>Saved locally</span>' +
                     '</div>' +
                     '<div class="fr1-actions">' +
                         '<button class="fr1-button fr1-button--primary" data-fr1-return type="button">Return softly</button>' +
@@ -74,7 +72,7 @@ export function bindResumeScreen(root, context, actions) {
     }
 
     function handleFinish() {
-        actions.finishSoftly();
+        actions.completeSoftFinish();
     }
 
     function handleStartOver() {
